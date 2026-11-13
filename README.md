@@ -5,6 +5,9 @@
 
 The application focuses on delivering a smooth user experience through a responsive interface, reliable performance, and user-friendly functionality.
 
+ ** final working live link
+ https://mobilix-blue.vercel.app **
+
 ## ✨ Key Features
 - 🔐 User Registration and Login
 - 👤 User Profile Management
