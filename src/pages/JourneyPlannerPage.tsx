@@ -15,6 +15,27 @@ export const JourneyPlannerPage: React.FC = () => {
   const [selectedWhy, setSelectedWhy] = useState<JourneyOption | null>(null);
 
   const [journeys, setJourneys] = useState<JourneyOption[]>(MOCK_JOURNEYS);
+  const [searching, setSearching] = useState(false);
+
+  const handleSearchRoutes = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setSearching(true);
+    try {
+      const res = await fetch('/api/journey/plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from, to })
+      });
+      const data = await res.json();
+      if (data.options && data.options.length > 0) {
+        setJourneys(data.options);
+      }
+    } catch (err) {
+      // client mock routes persist
+    } finally {
+      setSearching(false);
+    }
+  };
 
   const getSortedJourneys = () => {
     return [...journeys].sort((a, b) => {
@@ -55,45 +76,58 @@ export const JourneyPlannerPage: React.FC = () => {
         </p>
 
         {/* Input Controls */}
-        <form onSubmit={(e) => e.preventDefault()} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-          <div>
-            <label className="text-[11px] font-bold text-slate-400 uppercase block mb-1">From Location</label>
-            <input
-              type="text"
-              value={from}
-              onChange={e => setFrom(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white font-medium focus:border-cyan-500 focus:outline-none"
-            />
+        <form onSubmit={handleSearchRoutes} className="mt-6 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="text-[11px] font-bold text-slate-400 uppercase block mb-1">From Location</label>
+              <input
+                type="text"
+                value={from}
+                onChange={e => setFrom(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white font-medium focus:border-cyan-500 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="text-[11px] font-bold text-slate-400 uppercase block mb-1">To Destination</label>
+              <input
+                type="text"
+                value={to}
+                onChange={e => setTo(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white font-medium focus:border-cyan-500 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="text-[11px] font-bold text-slate-400 uppercase block mb-1">Date</label>
+              <input
+                type="text"
+                value={date}
+                onChange={e => setDate(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white font-medium focus:border-cyan-500 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="text-[11px] font-bold text-slate-400 uppercase block mb-1">Departure Time</label>
+              <input
+                type="text"
+                value={time}
+                onChange={e => setTime(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white font-medium focus:border-cyan-500 focus:outline-none"
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="text-[11px] font-bold text-slate-400 uppercase block mb-1">To Destination</label>
-            <input
-              type="text"
-              value={to}
-              onChange={e => setTo(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white font-medium focus:border-cyan-500 focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="text-[11px] font-bold text-slate-400 uppercase block mb-1">Date</label>
-            <input
-              type="text"
-              value={date}
-              onChange={e => setDate(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white font-medium focus:border-cyan-500 focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="text-[11px] font-bold text-slate-400 uppercase block mb-1">Departure Time</label>
-            <input
-              type="text"
-              value={time}
-              onChange={e => setTime(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white font-medium focus:border-cyan-500 focus:outline-none"
-            />
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={searching}
+              className="px-6 py-2.5 rounded-xl bg-cyan-500 text-slate-950 font-bold text-xs hover:bg-cyan-400 transition flex items-center gap-2 shadow-lg shadow-cyan-500/20 disabled:opacity-50"
+            >
+              <Navigation className="w-3.5 h-3.5 fill-slate-950" />
+              <span>{searching ? 'Calculating Optimal Routes...' : 'Calculate Routes'}</span>
+            </button>
           </div>
         </form>
       </div>

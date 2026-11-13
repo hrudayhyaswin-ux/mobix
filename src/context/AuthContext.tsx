@@ -90,7 +90,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const addWalletMoney = (amount: number) => {
-    setWalletBalance(prev => prev + amount);
+    setWalletBalance(prev => {
+      const next = prev + amount;
+      setUser(u => ({ ...u, walletBalance: next }));
+      return next;
+    });
     const newTxn: WalletTransaction = {
       id: 'TXN-' + Math.floor(Math.random() * 10000),
       title: 'Wallet Top-Up',
@@ -108,7 +112,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       addNotification('Insufficient Balance', `Please add ₹${(amount - walletBalance).toFixed(2)} to continue.`, 'warning');
       return false;
     }
-    setWalletBalance(prev => prev - amount);
+    setWalletBalance(prev => {
+      const next = prev - amount;
+      setUser(u => ({ ...u, walletBalance: next }));
+      return next;
+    });
     return true;
   };
 

@@ -1,12 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { MOCK_ADMIN_KPIS, MOCK_INCIDENTS } from '../data/mockData';
-import { Building2, Activity, Radio, Car, Bus, ParkingSquare, Zap, AlertTriangle, ShieldCheck, TrendingUp, Users } from 'lucide-react';
+import { Building2, Activity, Radio, Car, Bus, ParkingSquare, Zap, AlertTriangle, ShieldCheck, TrendingUp, Users, CheckCircle2 } from 'lucide-react';
 import { MapContainer } from '../components/MapContainer';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 export const AdminDashboardPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, addNotification } = useAuth();
+  const [incidents, setIncidents] = useState(MOCK_INCIDENTS);
+
+  const handleResolveIncident = async (id: string, location: string) => {
+    setIncidents(prev => prev.filter(i => i.id !== id));
+    addNotification('Incident Resolved', `Hazard ticket ${id} at ${location} closed by Command Admin.`, 'success');
+    try {
+      await fetch(`/api/incidents/${id}`, { method: 'DELETE' });
+    } catch (e) {
+      // client updated
+    }
+  };
 
   const demandTrend = [
     { hour: '06 AM', Passengers: 12000, Congestion: 35 },
@@ -114,17 +125,31 @@ export const AdminDashboardPage: React.FC = () => {
 
           {/* Quick Incident Resolution Queue */}
           <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-3">
-            <h4 className="text-xs font-bold text-slate-300 uppercase">Emergency Incident Priority Queue</h4>
-            <div className="space-y-2 text-xs">
-              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex justify-between">
-                <div>
-                  <strong className="block font-bold">Pothole on ORR Exit 4</strong>
-                  <span className="text-[10px]">Assigned to Crew #12</span>
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-bold text-slate-300 uppercase">Emergency Incident Priority Queue</h4>
+              <span className="text-[10px] font-bold text-amber-400">{incidents.length} Active</span>
+            </div>
+            <div className="space-y-2 text-xs max-h-56 overflow-y-auto pr-1 custom-scrollbar">
+              {incidents.length === 0 ? (
+                <div className="p-4 text-center text-slate-500 text-xs">
+                  All reported road incidents resolved! 🟢
                 </div>
-                <button className="px-2 py-1 rounded bg-amber-500 text-slate-950 font-bold text-[10px] self-center">
-                  Resolve
-                </button>
-              </div>
+              ) : (
+                incidents.map(inc => (
+                  <div key={inc.id} className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-center justify-between gap-2">
+                    <div>
+                      <strong className="block font-bold">{inc.type}: {inc.location}</strong>
+                      <span className="text-[10px] opacity-80">{inc.description}</span>
+                    </div>
+                    <button 
+                      onClick={() => handleResolveIncident(inc.id, inc.location)}
+                      className="px-2.5 py-1 rounded bg-amber-500 text-slate-950 font-bold text-[10px] flex-shrink-0 hover:bg-amber-400 transition"
+                    >
+                      Resolve
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 

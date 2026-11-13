@@ -12,11 +12,23 @@ export const IncidentReportModal: React.FC = () => {
 
   if (!isIncidentModalOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const incId = 'INC-' + Math.floor(1000 + Math.random() * 9000);
-    setSubmittedId(incId);
-    addNotification('Incident Submitted', `Ticket #${incId} logged for municipal verification.`, 'warning');
+    const fallbackId = 'INC-' + Math.floor(1000 + Math.random() * 9000);
+    try {
+      const res = await fetch('/api/incidents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, location, description })
+      });
+      const data = await res.json();
+      const incId = data.incident?.id || fallbackId;
+      setSubmittedId(incId);
+      addNotification('Incident Submitted', `Ticket #${incId} logged for municipal verification.`, 'warning');
+    } catch (err) {
+      setSubmittedId(fallbackId);
+      addNotification('Incident Submitted', `Ticket #${fallbackId} logged for municipal verification.`, 'warning');
+    }
   };
 
   return (

@@ -7,7 +7,7 @@ import {
 import { MapContainer } from '../components/MapContainer';
 
 export const UserDashboardPage: React.FC = () => {
-  const { user, setActiveTab, setIsIncidentModalOpen, tickets } = useAuth();
+  const { user, walletBalance, setActiveTab, setIsIncidentModalOpen, tickets } = useAuth();
 
   return (
     <div className="space-y-8 pb-12">
@@ -213,7 +213,7 @@ export const UserDashboardPage: React.FC = () => {
                 Top-up
               </button>
             </div>
-            <div className="text-3xl font-black text-emerald-400">₹{user.walletBalance.toFixed(2)}</div>
+            <div className="text-3xl font-black text-emerald-400">₹{walletBalance.toFixed(2)}</div>
             <p className="text-[11px] text-slate-400">Auto-debit enabled for Metro & Smart Parking slots.</p>
           </div>
 

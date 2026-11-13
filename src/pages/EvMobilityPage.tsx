@@ -6,9 +6,26 @@ import { Zap, Gauge, Battery, BatteryCharging, CheckCircle2, SlidersHorizontal }
 import { MapContainer } from '../components/MapContainer';
 
 export const EvMobilityPage: React.FC = () => {
-  const { addNotification } = useAuth();
+  const { addTicket, addNotification, setActiveTab } = useAuth();
   const [stations] = useState<EvStation[]>(MOCK_EV_STATIONS);
   const [batteryPct, setBatteryPct] = useState(42);
+
+  const handleReservePlug = (e: EvStation) => {
+    const code = 'MBLX-EV-' + Math.floor(10000 + Math.random() * 90000);
+    addTicket({
+      id: 'TCK-' + Date.now(),
+      bookingType: 'EV Charging Bay',
+      ticketCode: code,
+      qrData: `EV-PLUG-RESERVATION-${code}`,
+      origin: e.name,
+      destination: `Bay #03 (${e.maxKw}kW CCS2)`,
+      amount: e.ratePerKwh * 25, // est for 25 kWh charge
+      date: 'Today',
+      status: 'Active'
+    });
+    addNotification('EV Plug Bay Reserved', `Reserved 150kW CCS2 plug at ${e.name}. Valid for 20 mins.`, 'success');
+    setActiveTab('tickets');
+  };
 
   // Range calculator formula
   const estimatedRangeKm = Math.round((batteryPct / 100) * 450);
@@ -82,10 +99,10 @@ export const EvMobilityPage: React.FC = () => {
               </div>
 
               <button
-                onClick={() => addNotification('Charger Reserved', `Plug reserved at ${e.name} for 15 mins.`, 'success')}
+                onClick={() => handleReservePlug(e)}
                 className="w-full py-2 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs hover:bg-emerald-400 transition"
               >
-                Reserve Plug Slot
+                Reserve Plug Slot (Issue Pass)
               </button>
             </div>
           ))}

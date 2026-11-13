@@ -6,10 +6,30 @@ export const EmergencySosModal: React.FC = () => {
   const { isEmergencyOpen, setIsEmergencyOpen, addNotification } = useAuth();
   const [sosActivated, setSosActivated] = useState(false);
   const [selectedService, setSelectedService] = useState<'ambulance' | 'police' | 'fire' | 'roadside'>('ambulance');
+  const [dispatchInfo, setDispatchInfo] = useState<{ code: string; hospital: string; police: string } | null>(null);
 
   if (!isEmergencyOpen) return null;
 
-  const handleTriggerSos = () => {
+  const handleTriggerSos = async () => {
+    try {
+      const res = await fetch('/api/emergency', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: selectedService, lat: 17.4435, lng: 78.3772 })
+      });
+      const data = await res.json();
+      setDispatchInfo({
+        code: data.dispatchId || 'SOS-HYD-9904',
+        hospital: data.nearestHospital || 'Medicover Hospital (Ambulance #04)',
+        police: data.nearestPolice || 'Madhapur Police Station (Unit #12)'
+      });
+    } catch (err) {
+      setDispatchInfo({
+        code: 'SOS-HYD-9904',
+        hospital: 'Medicover Hospital (Ambulance #04)',
+        police: 'Madhapur Police Station (Unit #12)'
+      });
+    }
     setSosActivated(true);
     addNotification('EMERGENCY SOS DISPATCHED', 'Ambulance & Police emergency units dispatched to current GPS location.', 'emergency');
   };
@@ -92,12 +112,12 @@ export const EmergencySosModal: React.FC = () => {
               <CheckCircle2 className="w-10 h-10" />
             </div>
             <h2 className="text-2xl font-black text-white uppercase">SOS DISPATCH EN ROUTE</h2>
-            <p className="text-xs text-emerald-300 font-semibold mt-1">Dispatch Code: SOS-HYD-9904</p>
+            <p className="text-xs text-emerald-300 font-semibold mt-1">Dispatch Code: {dispatchInfo?.code || 'SOS-HYD-9904'}</p>
             
             <div className="my-6 p-4 rounded-2xl bg-slate-950 border border-slate-800 text-left space-y-2 text-xs">
               <div className="flex justify-between text-slate-300">
                 <span>Unit Dispatched:</span>
-                <strong className="text-red-400">Medicover Ambulance #04</strong>
+                <strong className="text-red-400">{dispatchInfo?.hospital || 'Medicover Ambulance #04'}</strong>
               </div>
               <div className="flex justify-between text-slate-300">
                 <span>ETA to Location:</span>
@@ -105,7 +125,7 @@ export const EmergencySosModal: React.FC = () => {
               </div>
               <div className="flex justify-between text-slate-300">
                 <span>Police Unit:</span>
-                <strong className="text-blue-400">Patrol Car #12 En Route</strong>
+                <strong className="text-blue-400">{dispatchInfo?.police || 'Patrol Car #12 En Route'}</strong>
               </div>
             </div>
 

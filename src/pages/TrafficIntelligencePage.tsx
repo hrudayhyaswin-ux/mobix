@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { MOCK_INCIDENTS } from '../data/mockData';
 import { SlidersHorizontal, AlertTriangle, MapPin, Gauge, ShieldCheck } from 'lucide-react';
@@ -6,7 +6,18 @@ import { MapContainer } from '../components/MapContainer';
 
 export const TrafficIntelligencePage: React.FC = () => {
   const { setIsIncidentModalOpen } = useAuth();
-  const [incidents] = useState(MOCK_INCIDENTS);
+  const [incidents, setIncidents] = useState(MOCK_INCIDENTS);
+
+  useEffect(() => {
+    fetch('/api/incidents')
+      .then(res => res.json())
+      .then(data => {
+        if (data.incidents && data.incidents.length > 0) {
+          setIncidents(data.incidents);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <div className="space-y-8 pb-16">

@@ -24,6 +24,10 @@ export const PublicTransportPage: React.FC = () => {
     { code: 'MMTS 47211', name: 'Secunderabad → HITEC Local', platform: 'PF 1', delay: '5 min Delay', fare: 15 }
   ];
 
+  const filteredBus = busRoutes.filter(b => b.code.toLowerCase().includes(search.toLowerCase()) || b.name.toLowerCase().includes(search.toLowerCase()));
+  const filteredMetro = metroStations.filter(m => m.name.toLowerCase().includes(search.toLowerCase()) || m.line.toLowerCase().includes(search.toLowerCase()));
+  const filteredTrains = trainSchedules.filter(t => t.code.toLowerCase().includes(search.toLowerCase()) || t.name.toLowerCase().includes(search.toLowerCase()));
+
   const handleIssueTicket = (type: string, name: string, amount: number) => {
     const code = 'MBLX-PT-' + Math.floor(10000 + Math.random() * 90000);
     addTicket({
@@ -53,39 +57,52 @@ export const PublicTransportPage: React.FC = () => {
           Explore bus timetables, metro interchange maps, local train delay status, and digital pass generation.
         </p>
 
-        {/* Section Tabs */}
-        <div className="flex items-center gap-2 mt-6">
-          <button
-            onClick={() => setActiveTabLocal('bus')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
-              activeTab === 'bus' ? 'bg-cyan-500 text-slate-950 shadow-md' : 'bg-slate-950 text-slate-400 hover:text-white'
-            }`}
-          >
-            <Bus className="w-4 h-4" /> Bus Routes
-          </button>
-          <button
-            onClick={() => setActiveTabLocal('metro')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
-              activeTab === 'metro' ? 'bg-cyan-500 text-slate-950 shadow-md' : 'bg-slate-950 text-slate-400 hover:text-white'
-            }`}
-          >
-            <Train className="w-4 h-4" /> Metro Rail
-          </button>
-          <button
-            onClick={() => setActiveTabLocal('train')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
-              activeTab === 'train' ? 'bg-cyan-500 text-slate-950 shadow-md' : 'bg-slate-950 text-slate-400 hover:text-white'
-            }`}
-          >
-            <Train className="w-4 h-4" /> Local Trains
-          </button>
+        {/* Section Tabs & Search Filter */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-6">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setActiveTabLocal('bus')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+                activeTab === 'bus' ? 'bg-cyan-500 text-slate-950 shadow-md' : 'bg-slate-950 text-slate-400 hover:text-white'
+              }`}
+            >
+              <Bus className="w-4 h-4" /> Bus Routes
+            </button>
+            <button
+              onClick={() => setActiveTabLocal('metro')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+                activeTab === 'metro' ? 'bg-cyan-500 text-slate-950 shadow-md' : 'bg-slate-950 text-slate-400 hover:text-white'
+              }`}
+            >
+              <Train className="w-4 h-4" /> Metro Rail
+            </button>
+            <button
+              onClick={() => setActiveTabLocal('train')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+                activeTab === 'train' ? 'bg-cyan-500 text-slate-950 shadow-md' : 'bg-slate-950 text-slate-400 hover:text-white'
+              }`}
+            >
+              <Train className="w-4 h-4" /> Local Trains
+            </button>
+          </div>
+
+          <div className="relative w-full sm:w-64">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+            <input
+              type="text"
+              placeholder="Search route, stop, line..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
+            />
+          </div>
         </div>
       </div>
 
       {/* BUS MODULE VIEW */}
       {activeTab === 'bus' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {busRoutes.map((b, i) => (
+          {filteredBus.map((b, i) => (
             <div key={i} className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4 hover:border-cyan-500/40 transition shadow-xl">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black text-cyan-400 px-3 py-1 rounded-lg bg-cyan-500/20 border border-cyan-500/30">
@@ -115,7 +132,7 @@ export const PublicTransportPage: React.FC = () => {
       {/* METRO MODULE VIEW */}
       {activeTab === 'metro' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {metroStations.map((m, i) => (
+          {filteredMetro.map((m, i) => (
             <div key={i} className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4 hover:border-indigo-500/40 transition shadow-xl">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black text-indigo-400 px-3 py-1 rounded-lg bg-indigo-500/20 border border-indigo-500/30">
@@ -144,7 +161,7 @@ export const PublicTransportPage: React.FC = () => {
       {/* TRAIN MODULE VIEW */}
       {activeTab === 'train' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {trainSchedules.map((t, i) => (
+          {filteredTrains.map((t, i) => (
             <div key={i} className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4 hover:border-teal-500/40 transition shadow-xl">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black text-teal-400 px-3 py-1 rounded-lg bg-teal-500/20 border border-teal-500/30">

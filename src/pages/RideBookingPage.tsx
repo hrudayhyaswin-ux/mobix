@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { Car, Bike, ShieldCheck, Star, MapPin, CheckCircle2, User, PhoneCall, Key, ArrowRight } from 'lucide-react';
 
 export const RideBookingPage: React.FC = () => {
-  const { walletBalance, deductWalletMoney, addNotification, setActiveTab } = useAuth();
+  const { walletBalance, deductWalletMoney, addTicket, addNotification, setActiveTab } = useAuth();
   
   const [pickup, setPickup] = useState('Cyber Towers Main Gate');
   const [drop, setDrop] = useState('Inorbit Mall Entrance');
@@ -23,8 +23,20 @@ export const RideBookingPage: React.FC = () => {
   const handleConfirmBooking = () => {
     const ok = deductWalletMoney(currentOption.price);
     if (ok) {
+      const code = 'MBLX-RIDE-' + Math.floor(10000 + Math.random() * 90000);
+      addTicket({
+        id: 'TCK-' + Date.now(),
+        bookingType: currentOption.name,
+        ticketCode: code,
+        qrData: `RIDE-PASS-${code}-PIN-${ridePin}`,
+        origin: pickup,
+        destination: drop,
+        amount: currentOption.price,
+        date: 'Today',
+        status: 'Active'
+      });
       setStep('tracking');
-      addNotification('Ride Confirmed', `Driver ${currentOption.driver} is arriving in ${currentOption.eta}.`, 'success');
+      addNotification('Ride Confirmed', `Driver ${currentOption.driver} is arriving in ${currentOption.eta}. Safety PIN: ${ridePin}`, 'success');
     }
   };
 

@@ -38,7 +38,8 @@ export const AiAssistantModal: React.FC = () => {
         body: JSON.stringify({ question: q })
       });
       const data = await res.json();
-      const aiAnswer = data.answer || "I can guide you across all city routes, EV charging, and live metro schedules.";
+      const rawAnswer = data.answer || "I can guide you across all city routes, EV charging, and live metro schedules.";
+      const aiAnswer = data.source ? `${rawAnswer}\n\n🤖 Powered by ${data.source}` : rawAnswer;
 
       setTimeout(() => {
         setMessages(prev => [...prev, {
@@ -83,7 +84,7 @@ export const AiAssistantModal: React.FC = () => {
             </h4>
             <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-              Connected to Smart City Engine
+              Hugging Face AI & Smart City Engine
             </span>
           </div>
         </div>

@@ -8,6 +8,63 @@ export const VehicleManagementPage: React.FC = () => {
   const { addNotification } = useAuth();
   const [vehicles, setVehicles] = useState<Vehicle[]>(MOCK_VEHICLES);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [newVehicle, setNewVehicle] = useState({
+    make: '',
+    model: '',
+    licensePlate: '',
+    type: 'ev_car' as Vehicle['type'],
+    batteryHealth: 95,
+    insuranceExpiryDays: 365,
+    nextServiceKm: 5000
+  });
+
+  const handleAddVehicleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newVehicle.make || !newVehicle.model || !newVehicle.licensePlate) return;
+
+    const created: Vehicle = {
+      id: 'v-' + Date.now(),
+      make: newVehicle.make,
+      model: newVehicle.model,
+      licensePlate: newVehicle.licensePlate.toUpperCase(),
+      type: newVehicle.type,
+      batteryHealth: newVehicle.batteryHealth,
+      insuranceExpiryDays: newVehicle.insuranceExpiryDays,
+      nextServiceKm: newVehicle.nextServiceKm
+    };
+
+    setVehicles(prev => [created, ...prev]);
+    setShowAddModal(false);
+    addNotification('Vehicle Registered', `${created.make} ${created.model} added to your garage vault.`, 'success');
+
+    try {
+      await fetch('/api/vehicles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          make: created.make,
+          model: created.model,
+          licensePlate: created.licensePlate,
+          type: created.type,
+          batteryHealth: created.batteryHealth,
+          insuranceDays: created.insuranceExpiryDays,
+          serviceKm: created.nextServiceKm
+        })
+      });
+    } catch (err) {
+      // client-side state already updated
+    }
+
+    setNewVehicle({
+      make: '',
+      model: '',
+      licensePlate: '',
+      type: 'ev_car',
+      batteryHealth: 95,
+      insuranceExpiryDays: 365,
+      nextServiceKm: 5000
+    });
+  };
 
   return (
     <div className="space-y-8 pb-16">
@@ -102,6 +159,128 @@ export const VehicleManagementPage: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* Add Vehicle Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in">
+          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-4 shadow-2xl relative">
+            <button 
+              onClick={() => setShowAddModal(false)}
+              className="absolute top-5 right-5 text-slate-400 hover:text-white font-bold text-sm"
+            >
+              ✕
+            </button>
+
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
+                <Wrench className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white">Add New Vehicle</h3>
+                <p className="text-xs text-slate-400">Register vehicle in your digital garage vault</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleAddVehicleSubmit} className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-bold text-slate-400 block mb-1">Make / Brand</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Tata, Tesla"
+                    value={newVehicle.make}
+                    onChange={e => setNewVehicle({ ...newVehicle, make: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold text-slate-400 block mb-1">Model Name</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Nexon EV, Model 3"
+                    value={newVehicle.model}
+                    onChange={e => setNewVehicle({ ...newVehicle, model: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-slate-400 block mb-1">License Plate</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. TS 09 AB 1234"
+                  value={newVehicle.licensePlate}
+                  onChange={e => setNewVehicle({ ...newVehicle, licensePlate: e.target.value })}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-cyan-400 uppercase focus:border-cyan-500 focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-bold text-slate-400 block mb-1">Vehicle Type</label>
+                  <select
+                    value={newVehicle.type}
+                    onChange={e => setNewVehicle({ ...newVehicle, type: e.target.value as any })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none"
+                  >
+                    <option value="ev_car">EV Car</option>
+                    <option value="ev_scooter">EV Scooter</option>
+                    <option value="car">Gasoline Car</option>
+                    <option value="bike">Motorcycle</option>
+                    <option value="scooter">Scooter</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold text-slate-400 block mb-1">Battery Health (%)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={newVehicle.batteryHealth}
+                    onChange={e => setNewVehicle({ ...newVehicle, batteryHealth: Number(e.target.value) })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-emerald-400 font-bold focus:border-cyan-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-bold text-slate-400 block mb-1">Insurance Validity (Days)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={newVehicle.insuranceExpiryDays}
+                    onChange={e => setNewVehicle({ ...newVehicle, insuranceExpiryDays: Number(e.target.value) })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold text-slate-400 block mb-1">Service Due (Km)</label>
+                  <input
+                    type="number"
+                    min="100"
+                    step="100"
+                    value={newVehicle.nextServiceKm}
+                    onChange={e => setNewVehicle({ ...newVehicle, nextServiceKm: Number(e.target.value) })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full mt-4 py-3 rounded-xl bg-cyan-500 text-slate-950 font-bold text-xs hover:bg-cyan-400 transition"
+              >
+                Register & Save Vehicle
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );
